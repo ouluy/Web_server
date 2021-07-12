@@ -27,5 +27,5 @@ Prepare to learn and make your own webserver
 * epoll边缘触发（edge trigger）IO复用模型，非阻塞IO，多线程的Reactor高并发模型
 * 利用状态机解析HTTP请求报文，实现处理静态资源的请求
 * 为减少内存泄漏的可能，使用智能指针等RAII机制
-* 基于小根堆实现的定时器，关闭超时的非活动连接
+* 基于最小堆实现的定时器，关闭超时的非活动连接
 

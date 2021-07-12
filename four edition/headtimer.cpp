@@ -24,6 +24,11 @@ using namespace cv;
 #include <iostream>
 using namespace std;
 
+
+size_t jisuan(long a,long b,int c){
+    return (a*100+b/10000)+c;
+}
+
 pthread_mutex_t MutexLockGuard::lock = PTHREAD_MUTEX_INITIALIZER;
 
 
@@ -31,9 +36,17 @@ mytimer::mytimer(shared_ptr<requestData> _request_data, int timeout): deleted(fa
 {
     //cout << "mytimer()" << endl;
     struct timeval now;
+    /*
+    struct timeval {
+        long  tv_sec;   秒数
+        long  tv_usec;  微秒数 
+    }
+    */
     gettimeofday(&now, NULL);
-    // 以毫秒计
-    expired_time = ((now.tv_sec * 1000) + (now.tv_usec / 1000)) + timeout;
+    // 以毫秒计（1970年1月1日到现在的时间）
+    //1000000 微秒 = 1秒
+    expired_time = jisuan(now.tv_sec,now.tv_usec,timeout);
+   // cout<<expired_time<<endl;
 }
 
 mytimer::~mytimer()
@@ -48,14 +61,14 @@ void mytimer::update(int timeout)
 {
     struct timeval now;
     gettimeofday(&now, NULL);
-    expired_time = ((now.tv_sec * 1000) + (now.tv_usec / 1000)) + timeout;
+    expired_time = jisuan(now.tv_sec,now.tv_usec,timeout);
 }
 
 bool mytimer::isvalid()
 {
     struct timeval now;
     gettimeofday(&now, NULL);
-    size_t temp = ((now.tv_sec * 1000) + (now.tv_usec / 1000));
+    size_t temp = ((now.tv_sec * 100) + (now.tv_usec / 10000));
     if (temp < expired_time)
     {
         return true;

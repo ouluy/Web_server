@@ -124,7 +124,7 @@ void Epoll::acceptConnection(int listen_fd, int epoll_fd, const std::string path
         
         // 设为非阻塞模式
         int ret = setSocketNonBlocking(accept_fd);
-        cout<<"ret:"<<ret<<endl;
+       // cout<<"ret:"<<ret<<endl;
         if (ret < 0)
         {
             perror("Set non block failed!");

@@ -149,6 +149,7 @@ void requestData::handleRequest()
             else if (errno != 0)
                 isError = true;
             break;
+           // cout<<"fd2:"<<fd<<endl;
         }
         string now_read(buff, buff + read_num);
 

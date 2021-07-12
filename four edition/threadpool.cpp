@@ -145,6 +145,7 @@ int ThreadPool::threadpool_free()
 {
     if(started > 0)
         return -1;
+    printf("xxxx\n");
     pthread_mutex_lock(&lock);
     pthread_mutex_destroy(&lock);
     pthread_cond_destroy(&notify);
@@ -160,6 +161,9 @@ void *ThreadPool::threadpool_thread(void *args)
         while((count == 0) && (!shutdown)) 
         {
             pthread_cond_wait(&notify, &lock);
+            //将线程放在条件变量的请求队列后，内部解锁
+            //线程等待被pthread_cond_broadcast信号唤醒或者pthread_cond_signal信号唤醒，唤醒后去竞争锁
+            //若竞争到互斥锁，内部再次加锁
         }
         if((shutdown == immediate_shutdown) ||
            ((shutdown == graceful_shutdown) && (count == 0)))
@@ -178,7 +182,7 @@ void *ThreadPool::threadpool_thread(void *args)
 
     --started;
 
-    //pthread_mutex_unlock(&lock);
+    pthread_mutex_unlock(&lock);
     pthread_exit(NULL);
     return(NULL);
 }
