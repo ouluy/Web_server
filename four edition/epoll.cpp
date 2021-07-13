@@ -10,12 +10,13 @@
 #include <deque>
 #include <iostream>
 #include <arpa/inet.h>
-#include "headtimer.h"
+#include "heaptimer.h"
 
 using namespace std;
 
 int TIMER_TIME_OUT = 500;
 
+pthread_mutex_t Epoll::lock = PTHREAD_MUTEX_INITIALIZER;
 
 extern std::priority_queue<std::shared_ptr<mytimer>, std::deque<std::shared_ptr<mytimer>>, timerCmp> myTimerQueue;
 
@@ -101,6 +102,23 @@ void Epoll::my_epoll_wait(int listen_fd, int max_events, int timeout)
             }
         }
     }
+    pthread_mutex_lock(&lock);
+
+    while(!myTimerQueue.empty()){
+        shared_ptr<mytimer> ptimer_now=myTimerQueue.top();
+        if(ptimer_now->isDeleted()){
+            myTimerQueue.pop();
+        }
+        else if (ptimer_now->isvalid() == false){
+             myTimerQueue.pop();
+            //delete ptimer_now;
+        }
+        else{
+            break;
+        }
+    }
+
+    pthread_mutex_unlock(&lock);
 }
 
 void Epoll::acceptConnection(int listen_fd, int epoll_fd, const std::string path)
@@ -135,12 +153,18 @@ void Epoll::acceptConnection(int listen_fd, int epoll_fd, const std::string path
 
         // 文件描述符可以读，边缘触发(Edge Triggered)模式，保证一个socket连接在任一时刻只被一个线程处理
         __uint32_t _epo_event = EPOLLIN | EPOLLET | EPOLLONESHOT;
+
         Epoll::epoll_add(accept_fd, req_info, _epo_event);
         // 新增时间信息
         std::shared_ptr<mytimer> mtimer(new mytimer(req_info, TIMER_TIME_OUT));
+        
         req_info->addTimer(mtimer);
-        MutexLockGuard lock;
+
+        pthread_mutex_lock(&lock);
+
         myTimerQueue.push(mtimer);
+
+        pthread_mutex_unlock(&lock);
     }
 }
 

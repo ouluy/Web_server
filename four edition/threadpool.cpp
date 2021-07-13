@@ -182,7 +182,7 @@ void *ThreadPool::threadpool_thread(void *args)
 
     --started;
 
-    pthread_mutex_unlock(&lock);
+    pthread_mutex_unlock(&lock);//上面break之后，缺一个解锁
     pthread_exit(NULL);
     return(NULL);
 }

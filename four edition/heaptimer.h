@@ -1,5 +1,5 @@
-#ifndef HEADTIMER
-#define HEADTIMER
+#ifndef HEAPTIMER
+#define HEAPTIMER
 
 #include"requestdata.h"
 #include<string>
@@ -10,10 +10,12 @@
 struct requestData;
 
 struct mytimer{
+private:
+    static pthread_mutex_t lock;
     bool deleted;
     size_t expired_time;
     std::shared_ptr<requestData> request_data;
-
+public:
     mytimer(std::shared_ptr<requestData> _request_data, int timeout);
     ~mytimer();
     void update(int timeout);
@@ -28,18 +30,5 @@ struct timerCmp{
     bool operator()(std::shared_ptr<mytimer> &a,std::shared_ptr<mytimer> &b) const;
 };
 
-class MutexLockGuard
-{
-public:
-    explicit MutexLockGuard();
-    ~MutexLockGuard();
-
-private:
-    static pthread_mutex_t lock;
-
-private:
-    MutexLockGuard(const MutexLockGuard&);
-    MutexLockGuard& operator=(const MutexLockGuard&);
-};
 
 #endif

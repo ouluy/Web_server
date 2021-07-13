@@ -12,6 +12,7 @@
 class Epoll
 {
 private:
+    static pthread_mutex_t lock;
     static epoll_event *events;
     static std::unordered_map<int, std::shared_ptr<requestData>> fd2req;
     static int epoll_fd;

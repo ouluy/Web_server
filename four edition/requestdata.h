@@ -2,7 +2,7 @@
 #define REQUESTDATA
 
 #include<string>
-#include"headtimer.h"
+#include"heaptimer.h"
 #include <memory>
 #include<unordered_map>
 #include <dirent.h>
@@ -37,11 +37,10 @@ const int METHOD_GET = 2;
 const int HTTP_10 = 1;
 const int HTTP_11 = 2;   
 
-const int EPOLL_WAIT_TIME = 500;  //EPOLL等待时间
+const int EPOLL_WAIT_TIME = 500;  
 
 class MimeType{
 private:
-    static pthread_mutex_t lock;
     static void init();
     static std::unordered_map<std::string,std::string>my;
     MimeType();
@@ -70,6 +69,7 @@ struct mytimer;
 struct requestData : public std::enable_shared_from_this<requestData>
 {
 private:
+    static pthread_mutex_t lock;
     int againTimes;
     std::string path;
     int fd;

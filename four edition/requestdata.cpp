@@ -11,7 +11,7 @@
 #include <sys/mman.h>
 #include <queue>
 #include <memory>
-#include "headtimer.h"
+#include "heaptimer.h"
 
 /*#include <opencv/cv.h>
 #include <opencv2/core/core.hpp>
@@ -24,7 +24,8 @@ using namespace cv;
 using namespace std;
 
 
-pthread_mutex_t MimeType::lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t requestData::lock = PTHREAD_MUTEX_INITIALIZER;
+
 std::unordered_map<std::string, std::string> MimeType::my;
 pthread_once_t MimeType::once= PTHREAD_ONCE_INIT;
 
@@ -76,6 +77,7 @@ requestData::~requestData()
     close(fd);
 }
 
+
 void requestData::addTimer(std::shared_ptr<mytimer> mtimer)
 {
     // shared_ptr重载了bool, 但weak_ptr没有
@@ -123,11 +125,11 @@ void requestData::handleRequest()
 {
     char buff[MAX_BUFF];
     bool isError = false;
-    while (true)
+    while (true)//状态机
     {
         cout<<"fd:"<<fd<<endl;
         int read_num = readn(fd, buff, MAX_BUFF);
-        //cout<<"againTimes:"<<againTimes<<endl;
+
         //cout<<"read_num:"<<read_num<<endl;
         if (read_num < 0)
         {
@@ -149,7 +151,6 @@ void requestData::handleRequest()
             else if (errno != 0)
                 isError = true;
             break;
-           // cout<<"fd2:"<<fd<<endl;
         }
         string now_read(buff, buff + read_num);
 
@@ -157,7 +158,7 @@ void requestData::handleRequest()
 
         content+=now_read;
 
-        if (state == STATE_PARSE_URI)
+        if (state == STATE_PARSE_URI)  //状态解析URI
         {
             int flag = this->parse_URI();
             if (flag == PARSE_URI_AGAIN)
@@ -171,7 +172,7 @@ void requestData::handleRequest()
                 break;
             }
         }
-        if (state == STATE_PARSE_HEADERS)
+        if (state == STATE_PARSE_HEADERS) //状态分析header
         {
             int flag = this->parse_Headers();
             if (flag == PARSE_HEADER_AGAIN)
@@ -184,16 +185,16 @@ void requestData::handleRequest()
                 isError = true;
                 break;
             }
-            if(method == METHOD_POST)
+            if(method == METHOD_POST)//post 传两次
             {
                 state = STATE_RECV_BODY;
             }
-            else 
+            else // get
             {
                 state = STATE_ANALYSIS;
             }
         }
-        if (state == STATE_RECV_BODY)
+        if (state == STATE_RECV_BODY) //状态接收body
         {
             int content_length = -1;
             if (headers.find("Content-length") != headers.end())
@@ -209,7 +210,7 @@ void requestData::handleRequest()
                 continue;
             state = STATE_ANALYSIS;
         }
-        if (state == STATE_ANALYSIS)
+        if (state == STATE_ANALYSIS)// 状态分析
         {
             int flag = this->analysisRequest();
             if (flag < 0)
@@ -230,7 +231,6 @@ void requestData::handleRequest()
             }
         }
     }
-    //printf("iserror keepalive:%d %d\n",isError,keep_alive);
     if (isError)
     {
         return;
@@ -238,8 +238,7 @@ void requestData::handleRequest()
     // 加入epoll继续
     
 
-    if (state == STATE_FINISH)
-    {
+    if (state == STATE_FINISH){ //状态完成
         if (keep_alive)
         {
             printf("ok\n");
@@ -254,11 +253,28 @@ void requestData::handleRequest()
     // 新增时间信息
    
     shared_ptr<mytimer> mtimer(new mytimer(shared_from_this(),500));
+
     this->addTimer(mtimer);
-    MutexLockGuard lock;
-    myTimerQueue.push(mtimer);
+
+    pthread_mutex_lock(&lock);
+
+    myTimerQueue.push(mtimer);//最小堆定时器
+
+    pthread_mutex_unlock(&lock);
+
+/* 处理逻辑是这样的
+因为(1) 优先队列不支持随机访问
+(2) 即使支持，随机删除某节点后破坏了堆的结构，需要重新更新堆结构。
+所以对于被置为deleted的时间节点，会延迟到它(1)超时 或 (2)它前面的节点都被删除时，它才会被删除。
+一个点被置为deleted,它最迟会在TIMER_TIME_OUT时间后被删除。
+这样做有两个好处：
+(1) 第一个好处是不需要遍历优先队列，省时。
+(2) 第二个好处是给超时时间一个容忍的时间，就是设定的超时时间是删除的下限(并不是一到超时时间就立即删除)，如果监听的请求在超时后的下一次请求中又一次出现了，
+就不用再重新申请RequestData节点了，这样可以继续重复利用前面的RequestData，减少了一次delete和一次new的时间。
+*/
 
     __uint32_t _epo_event = EPOLLIN | EPOLLET | EPOLLONESHOT;
+
     int ret = Epoll::epoll_mod(fd, shared_from_this(), _epo_event);
     
   //  printf("ret: %d\n",ret);
@@ -274,7 +290,6 @@ int requestData::parse_URI()
 {
     string &str = content;
 
-   // cout<<"***\n"<<str<<"***"<<endl;
     // 读到完整的请求行再开始解析请求
     int pos = str.find('\r', now_read_pos);
     if (pos < 0)
@@ -368,9 +383,13 @@ int requestData::parse_Headers()
 {
     string &str = content;
 
+    //cout<<str<<endl;
     int key_start = -1, key_end = -1, value_start = -1, value_end = -1;
+
     int now_read_line_begin = 0;
+
     bool notFinish = true;
+
     for (int i = 0; i < str.size() && notFinish; ++i)
     {
         switch(h_state)
@@ -516,7 +535,7 @@ int requestData::analysisRequest()
             return ANALYSIS_ERROR;
         }
         //cout << "content size ==" << content.size() << endl;
-        vector<char> data(content.begin(), content.end());
+        //vector<char> data(content.begin(), content.end());
         //Mat test = imdecode(data, CV_LOAD_IMAGE_ANYDEPTH|CV_LOAD_IMAGE_ANYCOLOR);
        // imwrite("receive.bmp", test);
         return ANALYSIS_SUCCESS;
@@ -581,7 +600,7 @@ int requestData::analysisRequest()
 }
 
 void requestData::handleError(int fd, int err_num, string short_msg)
-{
+{   //404
     short_msg = " " + short_msg;
     char send_buff[MAX_BUFF];
     string body_buff, header_buff;
