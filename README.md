@@ -1,6 +1,6 @@
 # webserver
 
-现以用c++实现高性能webserver，现阶段用webbench测压实现稳定60wpages/min,1w左右的QPS
+现以用c++实现高性能webserver，现阶段用webbench测压实现稳定90wpages/min,1w5左右的QPS
 
 # 项目目的
 
@@ -15,9 +15,12 @@ Prepare to learn and make your own webserver
 
 # 创建和启动
 
-`make myserver`
+```
+make myserver
 
-`./myserver`
+./myserver
+
+```
 
 # webbench-1.5测试
 
@@ -47,12 +50,6 @@ webbench -c 1000 -t 10 http://127.0.0.1:8888/1.html
 
 > 新的问题：不过还有一个疑问，为什么开启服务器，联网进入目录之后,再webbench测压就不会出错?这又是为啥……
 
+# 需要改进
 
-
-
-
-# 改进
 log日志和接入数据库，还有主界面
-
-
-
