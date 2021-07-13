@@ -21,7 +21,7 @@ Prepare to learn and make your own webserver
 
 # webbench-1.5测试
 
-[1000clients+10sec](https://github.com/ouluy/Web_server/blob/main/%E6%B5%8B%E8%AF%95%E5%9B%BE%E7%89%87/5%E6%B5%8B%E8%AF%95.png)
+![1000clients+10sec](https://github.com/ouluy/Web_server/blob/main/%E6%B5%8B%E8%AF%95%E5%9B%BE%E7%89%87/5%E6%B5%8B%E8%AF%95.png)
 
 ```
 webbench -c 100 -t 2 http://127.0.0.1:8888/1.html
