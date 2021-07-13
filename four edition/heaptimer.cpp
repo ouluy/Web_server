@@ -31,7 +31,8 @@ size_t jisuan(long a,long b,int c){
 
 pthread_mutex_t mytimer::lock = PTHREAD_MUTEX_INITIALIZER;
 
-mytimer::mytimer(shared_ptr<requestData> _request_data, int timeout): deleted(false), request_data(_request_data)
+mytimer::mytimer(shared_ptr<requestData> _request_data, int timeout): 
+    deleted(false), request_data(_request_data)
 {
     //cout << "mytimer()" << endl;
     struct timeval now;

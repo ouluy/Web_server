@@ -125,9 +125,9 @@ void requestData::handleRequest()
 {
     char buff[MAX_BUFF];
     bool isError = false;
-    while (true)//状态机
+    do//状态机
     {
-        cout<<"fd:"<<fd<<endl;
+       // cout<<"fd:"<<fd<<endl;
         int read_num = readn(fd, buff, MAX_BUFF);
 
         //cout<<"read_num:"<<read_num<<endl;
@@ -135,12 +135,13 @@ void requestData::handleRequest()
         {
             perror("1");
             isError = true;
+            handleError(fd,400,"Bad Request");
             break;
         }
         else if (read_num == 0)
         {
             // 有请求出现但是读不到数据，可能是Request Aborted，或者来自网络的数据没有达到等原因
-            perror("read_num==0");
+            /*perror("read_num==0");
             if (errno == EAGAIN)
             {
                 if (againTimes >10) //AGAIN_MAX_TIMES)
@@ -148,8 +149,11 @@ void requestData::handleRequest()
                 else
                     ++againTimes;//因为内测关闭againTimes,AGAIN_MAX_TIMES=200;
             }
-            else if (errno != 0)
-                isError = true;
+            else if (errno != 0)*/
+            //bug起因:但项目发现了一个bug，开启服务器直接webbench测试会core dumped(fd=5 forever),但如果开启服务器，联网进入目录之后,再webbench测压就不会出错,找了两天找不到bug在哪，怀疑哪个地方的指针写烂了
+            //bug居然在这里
+            // 一般对端已经关闭了，统一按照对端已经关闭处理
+            isError = true;
             break;
         }
         string now_read(buff, buff + read_num);
@@ -183,6 +187,7 @@ void requestData::handleRequest()
             {
                 perror("3");
                 isError = true;
+                handleError(fd, 400, "Bad Request");
                 break;
             }
             if(method == METHOD_POST)//post 传两次
@@ -204,6 +209,7 @@ void requestData::handleRequest()
             else
             {
                 isError = true;
+                handleError(fd, 400, "Bad Request: Lack of argument (Content-length)");
                 break;
             }
             if (content.size() < content_length)
@@ -230,7 +236,8 @@ void requestData::handleRequest()
                 break;
             }
         }
-    }
+    }while(false);
+    
     if (isError)
     {
         return;
@@ -252,9 +259,7 @@ void requestData::handleRequest()
     // 一定要先加时间信息，否则可能会出现刚加进去，下个in触发来了，然后分离失败后，又加入队列，最后超时被删，然后正在线程中进行的任务出错，double free错误。
     // 新增时间信息
    
-    shared_ptr<mytimer> mtimer(new mytimer(shared_from_this(),500));
-
-    this->addTimer(mtimer);
+    shared_ptr<mytimer> mtimer(new mytimer(shared_from_this(),1000));
 
     pthread_mutex_lock(&lock);
 
@@ -262,16 +267,8 @@ void requestData::handleRequest()
 
     pthread_mutex_unlock(&lock);
 
-/* 处理逻辑是这样的
-因为(1) 优先队列不支持随机访问
-(2) 即使支持，随机删除某节点后破坏了堆的结构，需要重新更新堆结构。
-所以对于被置为deleted的时间节点，会延迟到它(1)超时 或 (2)它前面的节点都被删除时，它才会被删除。
-一个点被置为deleted,它最迟会在TIMER_TIME_OUT时间后被删除。
-这样做有两个好处：
-(1) 第一个好处是不需要遍历优先队列，省时。
-(2) 第二个好处是给超时时间一个容忍的时间，就是设定的超时时间是删除的下限(并不是一到超时时间就立即删除)，如果监听的请求在超时后的下一次请求中又一次出现了，
-就不用再重新申请RequestData节点了，这样可以继续重复利用前面的RequestData，减少了一次delete和一次new的时间。
-*/
+    this->addTimer(mtimer);
+
 
     __uint32_t _epo_event = EPOLLIN | EPOLLET | EPOLLONESHOT;
 
@@ -604,7 +601,7 @@ void requestData::handleError(int fd, int err_num, string short_msg)
     short_msg = " " + short_msg;
     char send_buff[MAX_BUFF];
     string body_buff, header_buff;
-    body_buff += "<html><title>TKeed Error</title>";
+    body_buff += "<html><title>Error</title>";
     body_buff += "<body bgcolor=\"ffffff\">";
     body_buff += to_string(err_num) + short_msg;
     body_buff += "<hr><em> ouluy's Web Server</em>\n</body></html>";
