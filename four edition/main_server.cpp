@@ -30,13 +30,9 @@ const int ASK_IMAGE_STITCH = 2;
 
 const string PATH = "/";
 
-const int TIMER_TIME_OUT = 500;
-
-
-
 void acceptConnection(int listen_fd, int epoll_fd, const string &path);
 
-extern std::priority_queue<shared_ptr<mytimer>, std::deque<shared_ptr<mytimer>>, timerCmp> myTimerQueue;
+extern std::priority_queue<shared_ptr<MyTimer>, std::deque<shared_ptr<MyTimer>>, TimerCmp> myTimerQueue;
 
 
 int socket_bind_listen(int port)
@@ -76,15 +72,15 @@ int socket_bind_listen(int port)
 
 int main()
 {
-    handle_for_sigpipe();
+    HandleForSigpipe();
+    //忽略SIGPIPE信号，防止因为错误的写操作（向读端关闭的socket中写数据）而导致进程退出
 
-  
-    if (Epoll::epoll_init(MAXEVENTS, LISTENQ) < 0)
+    if (Epoll::EpollInit(MAXEVENTS, LISTENQ) < 0)
     {
         perror("epoll init failed");
         return 1;
     }
-    if (ThreadPool::threadpool_create(THREADPOOL_THREAD_NUM, QUEUE_SIZE) < 0)
+    if (ThreadPool::ThreadpoolCreate(THREADPOOL_THREAD_NUM, QUEUE_SIZE) < 0)
     {
         printf("Threadpool create failed\n");
         return 1;
@@ -97,22 +93,24 @@ int main()
     }
 
     int listen_fd = socket_bind_listen(PORT);
-    printf("listen_fd:%d\n",listen_fd);
+  
+   // printf("listen_fd:%d\n",listen_fd);
+
     if (listen_fd < 0) 
     {
         perror("socket bind failed");
         return 1;
     }
-    if (setSocketNonBlocking(listen_fd) < 0)
+    if (SetSocketNonBlocking(listen_fd) < 0)//非阻塞
     {
         perror("set socket non block failed");
         return 1;
     }
-    shared_ptr<requestData> request(new requestData());
+    shared_ptr<RequestData> request(new RequestData());
 
-    request->setFd(listen_fd);
+    request->SetFd(listen_fd);
     
-    if (Epoll::epoll_add(listen_fd, request, EPOLLIN | EPOLLET) < 0)
+    if (Epoll::EpollAdd(listen_fd, request, EPOLLIN | EPOLLET) < 0)
     {
         perror("epoll add error");
         return 1;
@@ -120,7 +118,7 @@ int main()
     while (true)
     {
       //  sleep(10);
-        Epoll::my_epoll_wait(listen_fd, MAXEVENTS, -1);
+        Epoll::MyEpollWait(listen_fd, MAXEVENTS, -1);
     }
     return 0;
 }

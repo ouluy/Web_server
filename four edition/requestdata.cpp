@@ -24,12 +24,12 @@ using namespace cv;
 using namespace std;
 
 
-pthread_mutex_t requestData::lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t RequestData::lock = PTHREAD_MUTEX_INITIALIZER;
 
 std::unordered_map<std::string, std::string> MimeType::my;
 pthread_once_t MimeType::once= PTHREAD_ONCE_INIT;
 
-void MimeType::init(){
+void MimeType::Init(){
     my[".html"] = "text/html";
     my[".avi"] = "video/x-msvideo";
     my[".bmp"] = "image/bmp";
@@ -46,9 +46,8 @@ void MimeType::init(){
     my["default"] = "text/html";
 }
 
-std::string MimeType::getMime(const std::string &suffix)
-{
-    pthread_once(&once,MimeType::init);
+std::string MimeType::GetMime(const std::string &suffix){
+    pthread_once(&once,MimeType::Init);
     if (my.find(suffix) == my.end())
         return my["default"];
     else
@@ -56,44 +55,41 @@ std::string MimeType::getMime(const std::string &suffix)
 }
 
 
-std::priority_queue<shared_ptr<mytimer>, std::deque<shared_ptr<mytimer>>, timerCmp> myTimerQueue;
+std::priority_queue<shared_ptr<MyTimer>, std::deque<shared_ptr<MyTimer>>, TimerCmp> myTimerQueue;
 
-requestData::requestData(): 
+RequestData::RequestData(): 
     now_read_pos(0), state(STATE_PARSE_URI), h_state(h_start), 
     keep_alive(false), againTimes(0)
 {
     cout << "requestData constructed !" << endl;
 }
 
-requestData::requestData(int _epollfd, int _fd, std::string _path):
+RequestData::RequestData(int _epollfd, int _fd, std::string _path):
     now_read_pos(0), state(STATE_PARSE_URI), h_state(h_start), 
     keep_alive(false), againTimes(0),
     path(_path), fd(_fd), epollfd(_epollfd)
 {}
 
-requestData::~requestData()
-{
+RequestData::~RequestData(){
   //  cout << "~requestData()" << endl;
     close(fd);
 }
 
 
-void requestData::addTimer(std::shared_ptr<mytimer> mtimer)
-{
+void RequestData::AddTimer(std::shared_ptr<MyTimer> mtimer){
     // shared_ptr重载了bool, 但weak_ptr没有
     timer = mtimer;
 }
 
-int requestData::getFd(){
+int RequestData::GetFd(){
     return fd;
 }
 
-void requestData::setFd(int _fd)
-{
+void RequestData::SetFd(int _fd){
     fd = _fd;
 }
 
-void requestData::reset()
+void RequestData::Reset()
 {
     againTimes = 0;
     content.clear();
@@ -106,36 +102,36 @@ void requestData::reset()
     keep_alive = false;
     if (timer.lock())
     {
-        shared_ptr<mytimer> my_timer(timer.lock());
-        my_timer->clearReq();
+        shared_ptr<MyTimer> my_timer(timer.lock());
+        my_timer->ClearReq();
         timer.reset();
     }
 }
 
-void requestData::seperateTimer()
+void RequestData::SeperateTimer()
 {
       if (timer.lock()){
-        shared_ptr<mytimer> my_timer(timer.lock());
-        my_timer->clearReq();
+        shared_ptr<MyTimer> my_timer(timer.lock());
+        my_timer->ClearReq();
         timer.reset();
     }
 }
 
-void requestData::handleRequest()
+void RequestData::HandleRequest()
 {
     char buff[MAX_BUFF];
     bool isError = false;
     do//状态机
     {
        // cout<<"fd:"<<fd<<endl;
-        int read_num = readn(fd, buff, MAX_BUFF);
+        int read_num = Readn(fd, buff, MAX_BUFF);
 
         //cout<<"read_num:"<<read_num<<endl;
         if (read_num < 0)
         {
             perror("1");
             isError = true;
-            handleError(fd,400,"Bad Request");
+            HandleError(fd,400,"Bad Request");
             break;
         }
         else if (read_num == 0)
@@ -158,13 +154,13 @@ void requestData::handleRequest()
         }
         string now_read(buff, buff + read_num);
 
-        //cout<<"nowread:\n"<<now_read<<"over\n"<<endl;
+        cout<<"nowread:\n"<<now_read<<"over\n"<<endl;
 
         content+=now_read;
 
         if (state == STATE_PARSE_URI)  //状态解析URI
         {
-            int flag = this->parse_URI();
+            int flag = this->ParseURI();
             if (flag == PARSE_URI_AGAIN)
             {
                 break;
@@ -178,7 +174,7 @@ void requestData::handleRequest()
         }
         if (state == STATE_PARSE_HEADERS) //状态分析header
         {
-            int flag = this->parse_Headers();
+            int flag = this->ParseHeaders();
             if (flag == PARSE_HEADER_AGAIN)
             {  
                 break;
@@ -187,7 +183,7 @@ void requestData::handleRequest()
             {
                 perror("3");
                 isError = true;
-                handleError(fd, 400, "Bad Request");
+                HandleError(fd, 400, "Bad Request");
                 break;
             }
             if(method == METHOD_POST)//post 传两次
@@ -209,7 +205,7 @@ void requestData::handleRequest()
             else
             {
                 isError = true;
-                handleError(fd, 400, "Bad Request: Lack of argument (Content-length)");
+                HandleError(fd, 400, "Bad Request: Lack of argument (Content-length)");
                 break;
             }
             if (content.size() < content_length)
@@ -218,7 +214,7 @@ void requestData::handleRequest()
         }
         if (state == STATE_ANALYSIS)// 状态分析
         {
-            int flag = this->analysisRequest();
+            int flag = this->AnalysisRequest();
             if (flag < 0)
             {
                 isError = true;
@@ -249,7 +245,7 @@ void requestData::handleRequest()
         if (keep_alive)
         {
             printf("ok\n");
-            this->reset();
+            this->Reset();
         }
         else
         {
@@ -259,7 +255,7 @@ void requestData::handleRequest()
     // 一定要先加时间信息，否则可能会出现刚加进去，下个in触发来了，然后分离失败后，又加入队列，最后超时被删，然后正在线程中进行的任务出错，double free错误。
     // 新增时间信息
    
-    shared_ptr<mytimer> mtimer(new mytimer(shared_from_this(),1000));
+    shared_ptr<MyTimer> mtimer(new MyTimer(shared_from_this(),1000));
 
     pthread_mutex_lock(&lock);
 
@@ -267,12 +263,12 @@ void requestData::handleRequest()
 
     pthread_mutex_unlock(&lock);
 
-    this->addTimer(mtimer);
+    this->AddTimer(mtimer);
 
 
     __uint32_t _epo_event = EPOLLIN | EPOLLET | EPOLLONESHOT;
 
-    int ret = Epoll::epoll_mod(fd, shared_from_this(), _epo_event);
+    int ret = Epoll::EpollMod(fd, shared_from_this(), _epo_event);
     
   //  printf("ret: %d\n",ret);
     
@@ -283,7 +279,7 @@ void requestData::handleRequest()
     
 }
 
-int requestData::parse_URI()
+int RequestData::ParseURI()
 {
     string &str = content;
 
@@ -376,7 +372,7 @@ int requestData::parse_URI()
     return PARSE_URI_SUCCESS;
 }
 
-int requestData::parse_Headers()
+int RequestData::ParseHeaders()
 {
     string &str = content;
 
@@ -497,7 +493,7 @@ int requestData::parse_Headers()
 }
 
 
-int requestData::analysisRequest()
+int RequestData::AnalysisRequest()
 {
 
     if (method == METHOD_POST)
@@ -552,13 +548,13 @@ int requestData::analysisRequest()
         int dot_pos = file_name.find('.');
         const char* filetype;
         if (dot_pos < 0) 
-            filetype = MimeType::getMime("default").c_str();
+            filetype = MimeType::GetMime("default").c_str();
         else
-            filetype = MimeType::getMime(file_name.substr(dot_pos)).c_str();
+            filetype = MimeType::GetMime(file_name.substr(dot_pos)).c_str();
 
         struct stat sbuf;
         if (stat(file_name.c_str(), &sbuf) < 0){
-            handleError(fd, 404, "Not Found!");
+            HandleError(fd, 404, "Not Found!");
             return ANALYSIS_ERROR;
         }
 
@@ -596,7 +592,7 @@ int requestData::analysisRequest()
         return ANALYSIS_ERROR;
 }
 
-void requestData::handleError(int fd, int err_num, string short_msg)
+void RequestData::HandleError(int fd, int err_num, string short_msg)
 {   //404
     short_msg = " " + short_msg;
     char send_buff[MAX_BUFF];

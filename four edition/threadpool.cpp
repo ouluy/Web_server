@@ -13,7 +13,7 @@ int ThreadPool::count = 0;
 int ThreadPool::shutdown = 0;
 int ThreadPool::started = 0;
 
-int ThreadPool::threadpool_create(int _thread_count, int _queue_size)
+int ThreadPool::ThreadpoolCreate(int _thread_count, int _queue_size)
 {
     bool err = false;
     do
@@ -35,7 +35,7 @@ int ThreadPool::threadpool_create(int _thread_count, int _queue_size)
         /* Start worker threads */
         for(int i = 0; i < _thread_count; ++i) 
         {
-            if(pthread_create(&threads[i], NULL, threadpool_thread, (void*)(0)) != 0) 
+            if(pthread_create(&threads[i], NULL, ThreadpoolThread, (void*)(0)) != 0) 
             {
                 //threadpool_destroy(pool, 0);
                 return -1;
@@ -54,13 +54,13 @@ int ThreadPool::threadpool_create(int _thread_count, int _queue_size)
     return 0;
 }
 
-void myHandler(std::shared_ptr<void> req)
+void MyHandler(std::shared_ptr<void> req)
 {
-    std::shared_ptr<requestData> request = std::static_pointer_cast<requestData>(req);
-    request->handleRequest();
+    std::shared_ptr<RequestData> request = std::static_pointer_cast<RequestData>(req);
+    request->HandleRequest();
 }
 
-int ThreadPool::threadpool_add(std::shared_ptr<void> args, std::function<void(std::shared_ptr<void>)> fun)
+int ThreadPool::ThreadpoolAdd(std::shared_ptr<void> args, std::function<void(std::shared_ptr<void>)> fun)
 {
     //printf("hello threadpool_add %d\n",queue_size);
     int next, err = 0;
@@ -102,7 +102,7 @@ int ThreadPool::threadpool_add(std::shared_ptr<void> args, std::function<void(st
     return err;
 }
 
-int ThreadPool::threadpool_destroy(threadpool_shutdown_t shutdown_option)
+int ThreadPool::ThreadpoolDestroy(threadpool_shutdown_t shutdown_option)
 {
     printf("Thread pool destroy !\n");
     int i, err = 0;
@@ -136,23 +136,23 @@ int ThreadPool::threadpool_destroy(threadpool_shutdown_t shutdown_option)
 
     if(!err) 
     {
-        threadpool_free();
+        ThreadpoolFree();
     }
     return err;
 }
 
-int ThreadPool::threadpool_free()
+int ThreadPool::ThreadpoolFree()
 {
     if(started > 0)
         return -1;
-    printf("xxxx\n");
+   // printf("xxxx\n");
     pthread_mutex_lock(&lock);
     pthread_mutex_destroy(&lock);
     pthread_cond_destroy(&notify);
     return 0;
 }
 
-void *ThreadPool::threadpool_thread(void *args)
+void *ThreadPool::ThreadpoolThread(void *args)
 {
     while (true)
     {
@@ -177,7 +177,7 @@ void *ThreadPool::threadpool_thread(void *args)
         head = (head + 1) % queue_size;
         --count;
         pthread_mutex_unlock(&lock);
-        task.fun(task.args);
+        task.fun(task.args);//function
     }
 
     --started;

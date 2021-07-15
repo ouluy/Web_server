@@ -19,12 +19,11 @@ Prepare to learn and make your own webserver
 make myserver
 
 ./myserver
-
 ```
 
 # webbench-1.5测试
 
-![1000clients+10sec](https://github.com/ouluy/Web_server/blob/main/%E6%B5%8B%E8%AF%95%E5%9B%BE%E7%89%87/5%E6%B5%8B%E8%AF%95.png)
+![1000clients+10sec](https://github.com/ouluy/Web_server/blob/main/example/5.png)
 
 ```
 webbench -c 100 -t 2 http://127.0.0.1:8888/1.html
@@ -46,9 +45,11 @@ webbench -c 1000 -t 10 http://127.0.0.1:8888/1.html
 
 版本4：把原本在处理httprequest的定时器分离出来，~~大佬的定时器跟我在《Linux高性能服务器编程》看到的不一样，虽然都是基于小根堆实现的定时器，~~ 前者是手写最小堆，后者直接用STL优先队列（大佬nb）
 
-> update:bug修掉了(喜大普奔T^T)，个人理解：在读取read_num==0时，没有把他当作对端关闭处理(有请求出现但是读不到数据)，再循环10次确定是否这个对端真的没数据了，当webbench，100个对端关闭时候，直接Segmentation fault (core dumped)了
+> update:bug修掉了(喜大普奔T^T)，~~个人理解：在读取read_num==0时，没有把他当作对端关闭处理(有请求出现但是读不到数据)，再循环10次确定是否这个对端真的没数据了，当webbench，100个对端关闭时候，直接Segmentation fault (core dumped)了~~
 
 > 新的问题：不过还有一个疑问，为什么开启服务器，联网进入目录之后,再webbench测压就不会出错?这又是为啥……
+
+> update:今天(7/14)写题的时候突然细细思考了一波,杀爆的个人理解,core dump[核心转储:进程异常终止，进程用户空间的数据就会被写到磁盘],跟我修改的那个没有任何关联,但最骚的是改完之后,还没有出过类似的问题,太折磨人了.(我试过ulimit -a ulimit -c 1024 但生成不了core文件...),很气,希望早日找到
 
 # 需要改进
 

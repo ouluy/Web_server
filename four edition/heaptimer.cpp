@@ -12,26 +12,17 @@
 #include <queue>
 #include <memory>
 #include "heaptimer.h"
-
-
-/*#include <opencv/cv.h>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/opencv.hpp>
-using namespace cv;
-*/
-//test
 #include <iostream>
 using namespace std;
 
 
-size_t jisuan(long a,long b,int c){
+size_t Calculation(long a,long b,int c){
     return (a*1000+b/1000)+c;// c/1000 s
 }
 
-pthread_mutex_t mytimer::lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t MyTimer::lock = PTHREAD_MUTEX_INITIALIZER;
 
-mytimer::mytimer(shared_ptr<requestData> _request_data, int timeout): 
+MyTimer::MyTimer(shared_ptr<RequestData> _request_data, int timeout): 
     deleted(false), request_data(_request_data)
 {
     //cout << "mytimer()" << endl;
@@ -45,27 +36,27 @@ mytimer::mytimer(shared_ptr<requestData> _request_data, int timeout):
     gettimeofday(&now, NULL);
     // 以毫秒计（1970年1月1日到现在的时间）
     //1000000 微秒 = 1秒
-    expired_time = jisuan(now.tv_sec,now.tv_usec,timeout);
+    expired_time = Calculation(now.tv_sec,now.tv_usec,timeout);
    // cout<<expired_time<<endl;
 }
 
-mytimer::~mytimer()
+MyTimer::~MyTimer()
 {
-    cout<<request_data<<endl;
+    cout<<"requestdata:"<<request_data<<" ~TimerNode()"<<endl;
     if (request_data)
     {
-        Epoll::epoll_del(request_data->getFd(), EPOLLIN | EPOLLET | EPOLLONESHOT);
+        Epoll::EpollDel(request_data->GetFd(), EPOLLIN | EPOLLET | EPOLLONESHOT);
     }
 }
 
-void mytimer::update(int timeout)
+void MyTimer::Update(int timeout)
 {
     struct timeval now;
     gettimeofday(&now, NULL);
-    expired_time = jisuan(now.tv_sec,now.tv_usec,timeout);
+    expired_time = Calculation(now.tv_sec,now.tv_usec,timeout);
 }
 
-bool mytimer::isvalid()
+bool MyTimer::Isvalid()
 {
     struct timeval now;
     gettimeofday(&now, NULL);
@@ -76,33 +67,33 @@ bool mytimer::isvalid()
     }
     else
     {
-        this->setDeleted();
+        this->SetDeleted();
         return false;
     }
 }
 
-void mytimer::clearReq()
+void MyTimer::ClearReq()
 {
     request_data.reset();
-    this->setDeleted();
+    this->SetDeleted();
 }
 
-void mytimer::setDeleted()
+void MyTimer::SetDeleted()
 {
     deleted = true;
 }
 
-bool mytimer::isDeleted() const
+bool MyTimer::IsDeleted() const
 {
     return deleted;
 }
 
-size_t mytimer::getExpTime() const
+size_t MyTimer::GetExpTime() const
 {
     return expired_time;
 }
 
-bool timerCmp::operator()(shared_ptr<mytimer> &a, shared_ptr<mytimer> &b) const
+bool TimerCmp::operator()(shared_ptr<MyTimer> &a, shared_ptr<MyTimer> &b) const
 {
-    return a->getExpTime() > b->getExpTime();
+    return a->GetExpTime() > b->GetExpTime();
 }

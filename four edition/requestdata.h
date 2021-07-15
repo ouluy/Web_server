@@ -41,13 +41,13 @@ const int EPOLL_WAIT_TIME = 500;
 
 class MimeType{
 private:
-    static void init();
+    static void Init();
     static std::unordered_map<std::string,std::string>my;
     MimeType();
     MimeType(const MimeType &m);
     static pthread_once_t once;
 public:
-    static std::string getMime(const std::string &suffix);
+    static std::string GetMime(const std::string &suffix);
     
 };
 
@@ -64,9 +64,9 @@ enum HeadersState{
 };
 
 
-struct mytimer;
+struct MyTimer;
 
-struct requestData : public std::enable_shared_from_this<requestData>
+struct RequestData : public std::enable_shared_from_this<RequestData>
 {
 private:
     static pthread_mutex_t lock;
@@ -84,22 +84,22 @@ private:
     bool isfinish;
     bool keep_alive;
     std::unordered_map<std::string,std::string>headers;
-    std::weak_ptr<mytimer> timer;    
+    std::weak_ptr<MyTimer> timer;    
 private:
-    int parse_URI();
-    int parse_Headers();
-    int analysisRequest();
+    int ParseURI();
+    int ParseHeaders();
+    int AnalysisRequest();
 public:
-    requestData();
-    requestData(int _epollfd,int _fd,std::string _path);
-    ~requestData();
-    void addTimer(std::shared_ptr<mytimer> mtimer);
-    void reset();
-    void seperateTimer();
-    int getFd();
-    void setFd(int _fd);
-    void handleRequest();
-    void handleError(int fd, int err_num, std::string short_msg);
+    RequestData();
+    RequestData(int _epollfd,int _fd,std::string _path);
+    ~RequestData();
+    void AddTimer(std::shared_ptr<MyTimer> mtimer);
+    void Reset();
+    void SeperateTimer();
+    int GetFd();
+    void SetFd(int _fd);
+    void HandleRequest();
+    void HandleError(int fd, int err_num, std::string short_msg);
 };
 
 #endif

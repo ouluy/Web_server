@@ -7,27 +7,27 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
-struct requestData;
+struct RequestData;
 
-struct mytimer{
+struct MyTimer{
 private:
     static pthread_mutex_t lock;
     bool deleted;
     size_t expired_time;
-    std::shared_ptr<requestData> request_data;
+    std::shared_ptr<RequestData> request_data;
 public:
-    mytimer(std::shared_ptr<requestData> _request_data, int timeout);
-    ~mytimer();
-    void update(int timeout);
-    bool isvalid();
-    void clearReq();
-    void setDeleted();
-    bool isDeleted() const;
-    size_t getExpTime() const;
+    MyTimer(std::shared_ptr<RequestData> _request_data, int timeout);
+    ~MyTimer();
+    void Update(int timeout);
+    bool Isvalid();
+    void ClearReq();
+    void SetDeleted();
+    bool IsDeleted() const;
+    size_t GetExpTime() const;
 };
 
-struct timerCmp{
-    bool operator()(std::shared_ptr<mytimer> &a,std::shared_ptr<mytimer> &b) const;
+struct TimerCmp{
+    bool operator()(std::shared_ptr<MyTimer> &a,std::shared_ptr<MyTimer> &b) const;
 };
 
 

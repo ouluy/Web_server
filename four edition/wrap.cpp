@@ -2,7 +2,7 @@
 //#include<iostream>
 
 
-void perr_exit(const char *str){
+void PerrExit(const char *str){
     perror(str);
     exit(1);
 }
@@ -24,7 +24,7 @@ return n;
 int Bind(int fd,const struct sockaddr *sa,socklen_t salen){
     int n;
     if((n=bind(fd,sa,salen))<0){
-        perr_exit("bind error");
+        PerrExit("bind error");
     }
     return n;
 }
@@ -32,7 +32,7 @@ int Bind(int fd,const struct sockaddr *sa,socklen_t salen){
 int Connect(int fd,const struct sockaddr *sa,socklen_t salen){
     int n;
     if((n=connect(fd,sa,salen))<0){
-        perr_exit("connect error");
+        PerrExit("connect error");
     }
     return n;
 }
@@ -40,16 +40,15 @@ int Connect(int fd,const struct sockaddr *sa,socklen_t salen){
 int Listen(int fd,int backlog){
     int n;
     if((n=listen(fd,backlog))<0){
-        perr_exit("listen error");
+        PerrExit("listen error");
     }
     return n;
 }
 
-
 int Socket(int family,int type,int protocol){
     int n;
     if((n=socket(family,type,protocol))<0){
-        perr_exit("socket error");
+        PerrExit("socket error");
     }
     return n;
 }
@@ -81,12 +80,12 @@ again:
 int Close(int fd){
     int n;
     if((n=close(fd))==-1){
-        perr_exit("close error");
+        PerrExit("close error");
     }
     return n;
 }
 
-ssize_t readn(int fd,void *vptr,size_t n){
+ssize_t Readn(int fd,void *vptr,size_t n){
     size_t nleft=n;
     ssize_t nread=0;
     ssize_t readSum=0;
@@ -114,6 +113,7 @@ ssize_t readn(int fd,void *vptr,size_t n){
     }
     return readSum;
 }
+
 /*
 ssize_t readn(int fd, std::string &inBuffer)
 {
@@ -174,8 +174,7 @@ ssize_t Writen(int fd,const void *vptr,size_t n){
     return n;
 }
 
-
-void handle_for_sigpipe(){
+void HandleForSigpipe(){
     struct sigaction sa;
     memset(&sa, '\0', sizeof(sa));
     sa.sa_handler = SIG_IGN;
@@ -184,7 +183,7 @@ void handle_for_sigpipe(){
         return;
 }
 
-int setSocketNonBlocking(int fd){
+int SetSocketNonBlocking(int fd){
     int flag = fcntl(fd, F_GETFL, 0);
     if(flag == -1)
         return -1;

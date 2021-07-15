@@ -18,14 +18,14 @@ int TIMER_TIME_OUT = 500;
 
 pthread_mutex_t Epoll::lock = PTHREAD_MUTEX_INITIALIZER;
 
-extern std::priority_queue<std::shared_ptr<mytimer>, std::deque<std::shared_ptr<mytimer>>, timerCmp> myTimerQueue;
+extern std::priority_queue<shared_ptr<MyTimer>, std::deque<shared_ptr<MyTimer>>, TimerCmp> myTimerQueue;
 
 epoll_event *Epoll::events;
-std::unordered_map<int, std::shared_ptr<requestData>> Epoll::fd2req;
+std::unordered_map<int, std::shared_ptr<RequestData>> Epoll::fd2req;
 int Epoll::epoll_fd = 0;
 const std::string Epoll::PATH = "/";
 
-int Epoll::epoll_init(int maxevents, int listen_num)
+int Epoll::EpollInit(int maxevents, int listen_num)
 {
     epoll_fd = epoll_create(listen_num + 1);
     if(epoll_fd == -1)
@@ -36,7 +36,7 @@ int Epoll::epoll_init(int maxevents, int listen_num)
 }
 
 // 注册新描述符
-int Epoll::epoll_add(int fd, std::shared_ptr<requestData> request, __uint32_t events)
+int Epoll::EpollAdd(int fd, std::shared_ptr<RequestData> request, __uint32_t events)
 {
     struct epoll_event event;
     event.data.fd = fd;
@@ -51,7 +51,7 @@ int Epoll::epoll_add(int fd, std::shared_ptr<requestData> request, __uint32_t ev
 }
 
 // 修改描述符状态
-int Epoll::epoll_mod(int fd, std::shared_ptr<requestData> request, __uint32_t events)
+int Epoll::EpollMod(int fd, std::shared_ptr<RequestData> request, __uint32_t events)
 {
     struct epoll_event event;
     event.data.fd = fd;
@@ -66,7 +66,7 @@ int Epoll::epoll_mod(int fd, std::shared_ptr<requestData> request, __uint32_t ev
 }
 
 // 从epoll中删除描述符
-int Epoll::epoll_del(int fd, __uint32_t events)
+int Epoll::EpollDel(int fd, __uint32_t events)
 {
     struct epoll_event event;
     event.data.fd = fd;
@@ -83,18 +83,18 @@ int Epoll::epoll_del(int fd, __uint32_t events)
 }
 
 // 返回活跃事件数
-void Epoll::my_epoll_wait(int listen_fd, int max_events, int timeout)
+void Epoll::MyEpollWait(int listen_fd, int max_events, int timeout)
 {
     // printf("fd2req.size()==%d\n", fd2req.size());
     int event_count = epoll_wait(epoll_fd, events, max_events, timeout);
     if (event_count < 0)
         perror("epoll wait error");
-    std::vector<std::shared_ptr<requestData>> req_data = getEventsRequest(listen_fd, event_count, PATH);
+    std::vector<std::shared_ptr<RequestData>> req_data = GetEventsRequest(listen_fd, event_count, PATH);
     if (req_data.size() > 0)
     {
         for (auto &req: req_data)
         {
-            if (ThreadPool::threadpool_add(req) < 0)
+            if (ThreadPool::ThreadpoolAdd(req,MyHandler) < 0)
             {
                 // 线程池满了或者关闭了等原因，抛弃本次监听到的请求。
                 printf("?\n");
@@ -105,11 +105,11 @@ void Epoll::my_epoll_wait(int listen_fd, int max_events, int timeout)
     pthread_mutex_lock(&lock);
 
     while(!myTimerQueue.empty()){
-        shared_ptr<mytimer> ptimer_now=myTimerQueue.top();
-        if(ptimer_now->isDeleted()){
+        shared_ptr<MyTimer> ptimer_now=myTimerQueue.top();
+        if(ptimer_now->IsDeleted()){
             myTimerQueue.pop();
         }
-        else if (ptimer_now->isvalid() == false){
+        else if (ptimer_now->Isvalid() == false){
              myTimerQueue.pop();
             //delete ptimer_now;
         }
@@ -121,7 +121,7 @@ void Epoll::my_epoll_wait(int listen_fd, int max_events, int timeout)
     pthread_mutex_unlock(&lock);
 }
 
-void Epoll::acceptConnection(int listen_fd, int epoll_fd, const std::string path)
+void Epoll::AcceptConnection(int listen_fd, int epoll_fd, const std::string path)
 {
     struct sockaddr_in client_addr;
     memset(&client_addr, 0, sizeof(struct sockaddr_in));
@@ -141,7 +141,7 @@ void Epoll::acceptConnection(int listen_fd, int epoll_fd, const std::string path
         */
         
         // 设为非阻塞模式
-        int ret = setSocketNonBlocking(accept_fd);
+        int ret = SetSocketNonBlocking(accept_fd);
        // cout<<"ret:"<<ret<<endl;
         if (ret < 0)
         {
@@ -149,16 +149,16 @@ void Epoll::acceptConnection(int listen_fd, int epoll_fd, const std::string path
             return;
         }
 
-        std::shared_ptr<requestData> req_info(new requestData(epoll_fd, accept_fd, path));
+        std::shared_ptr<RequestData> req_info(new RequestData(epoll_fd, accept_fd, path));
 
         // 文件描述符可以读，边缘触发(Edge Triggered)模式，保证一个socket连接在任一时刻只被一个线程处理
         __uint32_t _epo_event = EPOLLIN | EPOLLET | EPOLLONESHOT;
 
-        Epoll::epoll_add(accept_fd, req_info, _epo_event);
+        Epoll::EpollAdd(accept_fd, req_info, _epo_event);
         // 新增时间信息
-        std::shared_ptr<mytimer> mtimer(new mytimer(req_info, TIMER_TIME_OUT));
+        std::shared_ptr<MyTimer> mtimer(new MyTimer(req_info, TIMER_TIME_OUT));
         
-        req_info->addTimer(mtimer);
+        req_info->AddTimer(mtimer);
 
         pthread_mutex_lock(&lock);
 
@@ -169,19 +169,18 @@ void Epoll::acceptConnection(int listen_fd, int epoll_fd, const std::string path
 }
 
 // 分发处理函数
-std::vector<std::shared_ptr<requestData>> Epoll::getEventsRequest(int listen_fd, int events_num, const std::string path)
+std::vector<std::shared_ptr<RequestData>> Epoll::GetEventsRequest(int listen_fd, int events_num, const std::string path)
 {
-    std::vector<std::shared_ptr<requestData>> req_data;
+    std::vector<std::shared_ptr<RequestData>> req_data;
     for(int i = 0; i < events_num; ++i)
     {
         // 获取有事件产生的描述符
         int fd = events[i].data.fd;
 
         // 有事件发生的描述符为监听描述符
-        if(fd == listen_fd)
-        {
+        if(fd == listen_fd){
             //cout << "This is listen_fd" << endl;
-            acceptConnection(listen_fd, epoll_fd, path);
+            AcceptConnection(listen_fd, epoll_fd, path);
         }
         else if (fd < 3)
         {
@@ -203,9 +202,9 @@ std::vector<std::shared_ptr<requestData>> Epoll::getEventsRequest(int listen_fd,
 
             // 将请求任务加入到线程池中
             // 加入线程池之前将Timer和request分离
-            std::shared_ptr<requestData> cur_req(fd2req[fd]);
+            std::shared_ptr<RequestData> cur_req(fd2req[fd]);
             //printf("cur_req.use_count=%d\n", cur_req.use_count());
-            cur_req->seperateTimer();
+            cur_req->SeperateTimer();
             req_data.push_back(cur_req);
             auto fd_ite = fd2req.find(fd);
             if (fd_ite != fd2req.end())
