@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include "log.h"
 #include <pthread.h>
+//#include <iostream>
 using namespace std;
 
 Log::Log()
@@ -19,17 +20,21 @@ Log::~Log()
         fclose(m_fp);
     }
 }
+
+
 //异步需要设置阻塞队列的长度，同步不需要设置
-bool Log::init(const char *file_name, int close_log, int log_buf_size, int split_lines, int max_queue_size)
+bool Log::Init(const char *file_name, int close_log, int log_buf_size, int split_lines, int max_queue_size)
 {
     //如果设置了max_queue_size,则设置为异步
+    //cout<<max_queue_size<<endl;
+
     if (max_queue_size >= 1)
     {
         m_is_async = true;
         m_log_queue = new BlockQueue<string>(max_queue_size);
         pthread_t tid;
         //flush_log_thread为回调函数,这里表示创建线程异步写日志
-        pthread_create(&tid, NULL, flush_log_thread, NULL);
+        pthread_create(&tid, NULL, FlushLogThread, NULL);
     }
     
     m_close_log = close_log;
@@ -68,7 +73,7 @@ bool Log::init(const char *file_name, int close_log, int log_buf_size, int split
     return true;
 }
 
-void Log::write_log(int level, const char *format, ...)
+void Log::WriteLog(int level, const char *format, ...)
 {
     struct timeval now = {0, 0};
     gettimeofday(&now, NULL);
@@ -155,7 +160,7 @@ void Log::write_log(int level, const char *format, ...)
     va_end(valst);
 }
 
-void Log::flush()
+void Log::Flush()
 {
     m_mutex.lock();
     //强制刷新写入流缓冲区

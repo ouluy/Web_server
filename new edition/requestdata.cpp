@@ -12,6 +12,7 @@
 #include <queue>
 #include <memory>
 #include "heaptimer.h"
+#include "log.h"
 
 /*#include <opencv/cv.h>
 #include <opencv2/core/core.hpp>
@@ -126,6 +127,8 @@ void RequestData::HandleRequest()
        // cout<<"fd:"<<fd<<endl;
         int read_num = Readn(fd, buff, MAX_BUFF);
 
+        LOG_INFO("Request:%s", buff);
+
         //cout<<"read_num:"<<read_num<<endl;
         if (read_num < 0)
         {
@@ -154,7 +157,7 @@ void RequestData::HandleRequest()
         }
         string now_read(buff, buff + read_num);
 
-        cout<<"nowread:\n"<<now_read<<"over\n"<<endl;
+        //cout<<"nowread:\n"<<now_read<<"over\n"<<endl;
 
         content+=now_read;
 
@@ -167,8 +170,10 @@ void RequestData::HandleRequest()
             }
             else if (flag == PARSE_URI_ERROR)
             {
+                LOG_ERROR("FD = %d ,***%s***",fd,content);
                 perror("2");
                 isError = true;
+                HandleError(fd, 400, "Bad Request");
                 break;
             }
         }

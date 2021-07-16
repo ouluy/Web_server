@@ -18,27 +18,27 @@ class Log
 {
 public:
     //C++11以后,使用局部变量懒汉不用加锁
-    static Log *get_instance()
+    static Log *GetInstance()
     {
         static Log instance;
         return &instance;
     }
 
-    static void *flush_log_thread(void *args)
+    static void *FlushLogThread(void *args)
     {
-        Log::get_instance()->async_write_log();
+        Log::GetInstance()->AsyncWriteLog();
     }
-    //可选择的参数有日志文件、日志缓冲区大小、最大行数以及最长日志条队列
-    bool init(const char *file_name, int close_log, int log_buf_size = 8192, int split_lines = 5000000, int max_queue_size = 0);
+    //可选择的参数有日志文件(file_name)、是否关闭日志(close_log)、日志缓冲区大小(log_buf_size)、最大行数(split_lines)以及最长日志条队列
+    bool Init(const char *file_name, int close_log, int log_buf_size =2000, int split_lines =800000, int max_queue_size=1024);
 
-    void write_log(int level, const char *format, ...);
+    void WriteLog(int level, const char *format, ...);
 
-    void flush();
+    void Flush();
 
 private:
     Log();
     virtual ~Log();
-    void *async_write_log()
+    void *AsyncWriteLog()
     {
         std::string single_log;
         //从阻塞队列中取出一个日志string，写入文件
@@ -66,9 +66,9 @@ private:
 };
 
 
-#define LOG_DEBUG(format, ...) do{Log::get_instance()->write_log(0, format, ##__VA_ARGS__); Log::get_instance()->flush();}while(false);
-#define LOG_INFO(format, ...) do{Log::get_instance()->write_log(1, format, ##__VA_ARGS__); Log::get_instance()->flush();}while(false);
-#define LOG_WARN(format, ...) do{Log::get_instance()->write_log(2, format, ##__VA_ARGS__); Log::get_instance()->flush();}while(false);
-#define LOG_ERROR(format, ...) do{Log::get_instance()->write_log(3, format, ##__VA_ARGS__); Log::get_instance()->flush();}while(false);
+#define LOG_DEBUG(format, ...) do{Log::GetInstance()->WriteLog(0, format, ##__VA_ARGS__); Log::GetInstance()->Flush();}while(false);
+#define LOG_INFO(format, ...) do{Log::GetInstance()->WriteLog(1, format, ##__VA_ARGS__); Log::GetInstance()->Flush();}while(false);
+#define LOG_WARN(format, ...) do{Log::GetInstance()->WriteLog(2, format, ##__VA_ARGS__); Log::GetInstance()->Flush();}while(false);
+#define LOG_ERROR(format, ...) do{Log::GetInstance()->WriteLog(3, format, ##__VA_ARGS__); Log::GetInstance()->Flush();}while(false);
 
 #endif

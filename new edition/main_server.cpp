@@ -29,8 +29,7 @@ const int PORT = 8888;
 const int ASK_STATIC_FILE = 1;
 const int ASK_IMAGE_STITCH = 2;
 
-const int LOG_LEVEL=1;
-const int LOG_QUEUE_SIZE=1024;
+const int LOGQUEUESIZE=1024;
 
 const string PATH = "/";
 
@@ -120,12 +119,15 @@ int main()
         perror("set socket non block failed");
         return 1;
     }
-    Log::get_instance()->init("./myserver", 0, 2000, 800000, LOG_QUEUE_SIZE);
-    printf("yes\n");
-    LOG_INFO("========== Server init ==========");
-    printf("yes2\n");
+    Log::GetInstance()->Init("./myserver", 0, 2000,800000,LOGQUEUESIZE);
+
+    //有日志文件(file_name)、是否关闭日志(close_log)、日志缓冲区大小(log_buf_size)、最大行数(split_lines)以及最长日志条队列
+    LOG_INFO("========== Server Init ==========");
+
+    LOG_INFO("========== Hello ouluy ==========");
+
     LOG_INFO("Port:%d", PORT);
-    LOG_INFO("LogSys level: %d", LOG_LEVEL);
+
 
     shared_ptr<RequestData> request(new RequestData());
 
