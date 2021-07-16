@@ -4,7 +4,7 @@
 
 # 项目目的
 
-Prepare to learn and make your own webserver
+准备学习并创建自己的Webserver
 
 # 现有功能
 
@@ -36,7 +36,7 @@ webbench -c 1000 -t 10 http://127.0.0.1:8888/1.html
 
 # 旧版本
 
-模板：初学模板
+模板：初学模板，webserver
 
 版本1：照着写了个epoll-http-server，使用了epoll边缘触发（edge trigger）IO复用模型，多线程的Reactor高并发模型
 
@@ -56,4 +56,14 @@ webbench -c 1000 -t 10 http://127.0.0.1:8888/1.html
 
 # 需要改进
 
-接入数据库，还有主界面
+接入数据库（要改一堆），还有主界面
+
+# 参考
+
+参考了好多大佬的GitHub中的webserver，因为能力有限，写了大佬们的简单版
+
+[linyacool](https://github.com/linyacool/WebServer)
+[markparticle](https://github.com/markparticle/WebServer)
+[qinguoyi](https://github.com/qinguoyi/TinyWebServer)
+
+《Linux高性能服务器编程》，《UNIX网络编程1，2》，《Linux多线程服务端编程》
