@@ -21,6 +21,28 @@ Log::~Log()
     }
 }
 
+void *Log::AsyncWriteLog()
+{
+    std::string single_log;
+    //从阻塞队列中取出一个日志string，写入文件
+    while (m_log_queue->pop(single_log))
+    {
+        m_mutex.lock();
+        fputs(single_log.c_str(), m_fp);
+        m_mutex.unlock();
+    }
+}
+
+Log *Log::GetInstance()
+{
+        static Log instance;
+        return &instance;
+}
+
+void *Log::FlushLogThread(void *args)
+{
+    Log::GetInstance()->AsyncWriteLog();
+}
 
 //异步需要设置阻塞队列的长度，同步不需要设置
 bool Log::Init(const char *file_name, int close_log, int log_buf_size, int split_lines, int max_queue_size)

@@ -18,16 +18,9 @@ class Log
 {
 public:
     //C++11以后,使用局部变量懒汉不用加锁
-    static Log *GetInstance()
-    {
-        static Log instance;
-        return &instance;
-    }
+    static Log *GetInstance();
 
-    static void *FlushLogThread(void *args)
-    {
-        Log::GetInstance()->AsyncWriteLog();
-    }
+    static void *FlushLogThread(void *args);
     //可选择的参数有日志文件(file_name)、是否关闭日志(close_log)、日志缓冲区大小(log_buf_size)、最大行数(split_lines)以及最长日志条队列
     bool Init(const char *file_name, int close_log, int log_buf_size =2000, int split_lines =800000, int max_queue_size=1024);
 
@@ -38,17 +31,8 @@ public:
 private:
     Log();
     virtual ~Log();
-    void *AsyncWriteLog()
-    {
-        std::string single_log;
-        //从阻塞队列中取出一个日志string，写入文件
-        while (m_log_queue->pop(single_log))
-        {
-            m_mutex.lock();
-            fputs(single_log.c_str(), m_fp);
-            m_mutex.unlock();
-        }
-    }
+
+    void *AsyncWriteLog();
 
 private:
     char dir_name[128]; //路径名
