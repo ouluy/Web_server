@@ -13,14 +13,6 @@
 #include <memory>
 #include "heaptimer.h"
 #include "log.h"
-
-/*#include <opencv/cv.h>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/opencv.hpp>
-using namespace cv;
-*/
-//test
 #include <iostream>
 using namespace std;
 
@@ -115,6 +107,34 @@ void RequestData::SeperateTimer()
         shared_ptr<MyTimer> my_timer(timer.lock());
         my_timer->ClearReq();
         timer.reset();
+    }
+}
+
+void RequestData::AddTrigger()
+{
+    shared_ptr<MyTimer> mtimer(new MyTimer(shared_from_this(),1000));
+
+    pthread_mutex_lock(&lock);
+   //m_mutex.lock();
+
+    myTimerQueue.push(mtimer);//最小堆定时器
+
+    pthread_mutex_unlock(&lock);
+
+   // m_mutex.unlock();
+
+    this->AddTimer(mtimer);
+
+
+    __uint32_t _epo_event = EPOLLIN | EPOLLET | EPOLLONESHOT;
+
+    int ret = Epoll::EpollMod(fd, shared_from_this(), _epo_event);
+    
+  //  printf("ret: %d\n",ret);
+    
+    if (ret < 0){
+        // 返回错误处理
+        return;
     }
 }
 
@@ -259,32 +279,8 @@ void RequestData::HandleRequest()
     }
     // 一定要先加时间信息，否则可能会出现刚加进去，下个in触发来了，然后分离失败后，又加入队列，最后超时被删，然后正在线程中进行的任务出错，double free错误。
     // 新增时间信息
-   
-    shared_ptr<MyTimer> mtimer(new MyTimer(shared_from_this(),1000));
-
-    pthread_mutex_lock(&lock);
-   //m_mutex.lock();
-
-    myTimerQueue.push(mtimer);//最小堆定时器
-
-    pthread_mutex_unlock(&lock);
-
-   // m_mutex.unlock();
-
-    this->AddTimer(mtimer);
-
-
-    __uint32_t _epo_event = EPOLLIN | EPOLLET | EPOLLONESHOT;
-
-    int ret = Epoll::EpollMod(fd, shared_from_this(), _epo_event);
-    
-  //  printf("ret: %d\n",ret);
-    
-    if (ret < 0){
-        // 返回错误处理
-        return;
-    }
-    
+    this->AddTrigger();
+    return ;
 }
 
 int RequestData::ParseURI()

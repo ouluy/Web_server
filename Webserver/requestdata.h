@@ -100,6 +100,7 @@ public:
     void SeperateTimer();
     int GetFd();
     void SetFd(int _fd);
+    void AddTrigger();
     void HandleRequest();
     void HandleError(int fd, int err_num, std::string short_msg);
 };

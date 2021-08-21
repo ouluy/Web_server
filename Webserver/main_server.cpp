@@ -80,8 +80,11 @@ int socket_bind_listen(int port)
 }
 
 
-int main()
+int main(int argc,const char* argv[])
 {
+
+   // cout<<argv[1]<<endl;
+
     HandleForSigpipe();
     //忽略SIGPIPE信号，防止因为错误的写操作（向读端关闭的socket中写数据）而导致进程退出
 
@@ -95,7 +98,8 @@ int main()
         printf("Threadpool create failed\n");
         return 1;
     }  
-    int ret = chdir("/home/ouluy/Desktop/cs/");
+    int ret = chdir(argv[1]);
+   // int ret = chdir("/home/ouluy/Desktop/aa/presentation_results");
    // printf("%d\n",ret);
     if(ret == -1){
         perror("chdir error");

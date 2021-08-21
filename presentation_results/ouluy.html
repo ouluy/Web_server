@@ -1,39 +1,172 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Hello View directory</title>
-    </head>
-    <script> 
-        function show(){ 
-        var date = new Date(); //日期对象 动态时间显示
-        var now = ""; 
-        now = date.getFullYear()+"年"; //读英文就行了 
-        now = now + (date.getMonth()+1)+"月"; //取月的时候取的是当前月-1如果想取当前月+1就可以了 
-        now = now + date.getDate()+"日"; 
-        now = now + date.getHours()+"时"; 
-        now = now + date.getMinutes()+"分"; 
-        now = now + date.getSeconds()+"秒"; 
-        document.getElementById("nowDiv").innerHTML = now; //div的html是now这个字符串 
-        setTimeout("show()",1000); //设置过1000毫秒就是1秒，调用show方法 
-        } 
+<head>
+    <meta charset="utf-8">
+    <title>ouluy</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <style>
+        a{
+            text-decoration: none;
+        }
+    </style>       
+</head>
+<script> 
+    function show(){ 
+    var date = new Date(); //日期对象 动态时间显示
+    var now = ""; 
+    now = date.getFullYear()+"年"; //读英文就行了 
+    now = now + (date.getMonth()+1)+"月"; //取月的时候取的是当前月-1如果想取当前月+1就可以了 
+    now = now + date.getDate()+"日"; 
+    now = now + date.getHours()+"时"; 
+    now = now + date.getMinutes()+"分"; 
+    now = now + date.getSeconds()+"秒"; 
+    document.getElementById("nowDiv").innerHTML = now; //div的html是now这个字符串 
+    setTimeout("show()",1000); //设置过1000毫秒就是1秒，调用show方法 
+    
+    } 
+</script>
+<body onload="show()">
+   
+    
+    <div class="top">
+        <a href="https://github.com/ouluy" target="_blank">My GitHub</a>
+        <a href="https://www.cnblogs.com/luoyugongxi" target="_blank" style="float:right">我的博客</a>
+    </div>
+    <div class="content">
+    
+        <h1 class="avr">向往繁星的孩子永远奔跑在路上,又有谁能在路上一帆风顺呢</h1>
+    </div>
+
+    <div class="zhong">
+        <p>&nbsp;坚 持 努 力 </p>
+    </div>
+
+    <div class="row">
+        <div class="centercolumn">
+            <div class="card">
+
+                <h2 id="biaoti">webserver项目知识点</h2><br />
+                <hr />
+                <h4 id="qita">2021 年 8 月 21 日</h4>
+                <p style="font-family:arial;color:red;font-size:30px;text-align:center"> 
+                    <a  href="https://blog.csdn.net/vjhghjghj/article/details/100849453" target="_blank">五种IO模型和两种IO事件处理模式</a>
+                </p><br />
+                <p style="font-family:arial;color:red;font-size:30px;text-align:center"> 
+                    <a  href="https://blog.csdn.net/Snippers/article/details/113359006" target="_blank">IO多路复用</a>
+                </p><br />
+                <p style="font-family:arial;color:red;font-size:30px;text-align:center"> 
+                    <a href="https://blog.csdn.net/weixin_43327696/article/details/106238866" target="_blank">有限状态机解析HTTP请求</a>
+                </p><br />
+                <p style="font-family:arial;color:red;font-size:30px;text-align:center"> 
+                    <a href="https://www.cnblogs.com/zhanghairong/p/3757656.html" target="_blank">三种定时器</a>
+                </p><br />
+                <p style="font-family:arial;color:red;font-size:30px;text-align:center"> 
+                    <a href="https://www.cnblogs.com/dupengcheng/p/7205527.html" target="_blank">c++单例模式理解</a>
+                </p><br />
+                <p style="font-family:arial;color:red;font-size:30px;text-align:center"> 
+                    <a href="https://blog.csdn.net/qq_36459662/article/details/106901292" target="_blank">单例模式与阻塞队列的日志系统</a>
+                </p><br />
+                <p style="font-family:arial;color:red;font-size:30px;text-align:center"> 
+                    <a href="https://blog.csdn.net/qq_36459662/category_10083134.html?spm=1001.2014.3001.5482" target="_blank">轻量级Linux服务器总结</a>
+                </p><br />
+                <p style="font-family:arial;color:red;font-size:30px;text-align:center"> 
+                    <a href="https://blog.csdn.net/weixin_38391755/article/details/80380786/" target="_blank">Makefile</a>
+                </p><br />
+                <h4 id="qita">参考大佬项目</h4>
+                <p style="font-family:arial;color:red;font-size:30px;text-align:center"> 
+                    <a href="https://github.com/linyacool/WebServer" target="_blank">linyacool(恐怖的千万级)</a>
+                </p><br />
+                <p style="font-family:arial;color:red;font-size:30px;text-align:center"> 
+                    <a href="https://github.com/markparticle/WebServer" target="_blank">markparticle</a>
+                </p><br />
+                <p style="font-family:arial;color:red;font-size:30px;text-align:center"> 
+                    <a href="https://github.com/qinguoyi/TinyWebServer" target="_blank">qinguoyi（基础完整+数据库）</a>
+                </p><br />
+                <p style="font-family:arial;color:red;font-size:30px;text-align:center"> 
+                    <a href="https://github.com/ouluy/Web_server" target="_blank">我的项目代码(弱小的百万级)</a>
+                </p><br />
+                <h4 id="qita">阅 读 书 籍 指 南 : 《Linux高性能服务器编程》 ， 《UNIX网络编程1，2》 ，《Linux多线程服务端编程》  </h4>
+                </div>
+            </div>
+           
+        </div>
+    </div>
+
+    <div class ="bt" class="text" id="nowDiv"></div>
+    <div class="footer">
+        <br />
+        <p>热爱编程的小菜鸡</p><br />
+        <a href="https://github.com/ouluy" target="_blank"><img class="someimg" src="./github.jpg" alt="" width="30"></a>
+
+    </div>
+    <script>
+        //鼠标点击出现爱心特效  这部分特效是从一个网页搬过来的  觉得挺好看的
+        (function (window, document, undefined) {
+            var hearts = [];
+            window.requestAnimationFrame = (function () {
+                return window.requestAnimationFrame ||
+				window.webkitRequestAnimationFrame ||
+				window.mozRequestAnimationFrame ||
+				window.oRequestAnimationFrame ||
+				window.msRequestAnimationFrame ||
+				function (callback) {
+				    setTimeout(callback, 1000 / 60);
+				}
+            })();
+            init();
+            function init() {
+                css(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: absolute;}.heart:after{top: -5px;}.heart:before{left: -5px;}");
+                attachEvent();
+                gameloop();
+            }
+            function gameloop() {
+                for (var i = 0; i < hearts.length; i++) {
+                    if (hearts[i].alpha <= 0) {
+                        document.body.removeChild(hearts[i].el);
+                        hearts.splice(i, 1);
+                        continue;
+                    }
+                    hearts[i].y--;
+                    hearts[i].scale += 0.004;
+                    hearts[i].alpha -= 0.013;
+                    hearts[i].el.style.cssText = "left:" + hearts[i].x + "px;top:" + hearts[i].y + "px;opacity:" + hearts[i].alpha + ";transform:scale(" + hearts[i].scale + "," + hearts[i].scale + ") rotate(45deg);background:" + hearts[i].color;
+                }
+                requestAnimationFrame(gameloop);
+            }
+            function attachEvent() {
+                var old = typeof window.onclick === "function" && window.onclick;
+                window.onclick = function (event) {
+                    old && old();
+                    createHeart(event);
+                }
+            }
+            function createHeart(event) {
+                var d = document.createElement("div");
+                d.className = "heart";
+                hearts.push({
+                    el: d,
+                    x: event.clientX - 5,
+                    y: event.clientY - 5,
+                    scale: 1,
+                    alpha: 1,
+                    color: randomColor()
+                });
+                document.body.appendChild(d);
+            }
+            function css(css) {
+                var style = document.createElement("style");
+                style.type = "text/css";
+                try {
+                    style.appendChild(document.createTextNode(css));
+                } catch (ex) {
+                    style.styleSheet.cssText = css;
+                }
+                document.getElementsByTagName('head')[0].appendChild(style);
+            }
+            function randomColor() {
+                return "rgb(" + (~~(Math.random() * 255)) + "," + (~~(Math.random() * 255)) + "," + (~~(Math.random() * 255)) + ")";
+            }
+        })(window, document);
     </script>
-    <body>
-        
-        <body background="http://127.0.0.1:8888/3.jpg" style=" background-repeat:no-repeat ;background-position:0px 100px;background-size:100%;
-        background-attachment: fixed;">
-    </body> 
-    <body onload="show()"> <!-- 网页加载时调用一次 以后就自动调用了--> 
-    <div id="nowDiv"></div> 
-    <font color=#1C86EE><h1>Hello View directory</h1></font>
-        <hr>
-        <a href="http://127.0.0.1:8888/1.jpg">鬼刀风铃1</a>
-        <hr>
-        <a href="http://127.0.0.1:8888/2.jpg">"鬼刀风铃2"</a>
-        <hr>
-        <a href="http://127.0.0.1:8888/4.jpg">"鬼刀风铃3"</a>
-        <!--<hr>
-        <a href="http://127.0.0.1:8888/3.jpg">"鬼刀云娜1"</a>-->
-    </body>
+</body>
 </html>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />

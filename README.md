@@ -19,7 +19,7 @@
 ```
 make myserver
 
-./myserver
+./myserver /home/ouluy/Desktop/aa/presentation_results()
 ```
 
 # webbench-1.5测试
@@ -38,6 +38,8 @@ webbench -c 1000 -t 10 http://127.0.0.1:8888/1.html
 演示的内容和过程以及结果都放在了presentation_results文件夹
 
 ~~估计就放在实验室的服务器，内网自己搞搞，外部的服务器可能就不丢人了~~
+
+~~最后还是放到了阿里云上~~
 
 
 # 旧版本
